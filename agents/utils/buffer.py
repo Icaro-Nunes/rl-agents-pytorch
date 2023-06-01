@@ -197,3 +197,44 @@ class ReplayBuffer(BaseBuffer):
         )
         
         return ReplayBufferSamples(*tuple(map(self.to_torch, data)))
+
+
+class HistoryBasedReplayBuffer(ReplayBuffer):
+    """
+    Replay buffer used in off-policy algorithms like SAC/TD3.
+    :param buffer_size: Max number of element in the buffer
+    :param observation_space: Observation space
+    :param action_space: Action space
+    :param device:
+    :param n_envs: Number of parallel environments
+    :param optimize_memory_usage: Enable a memory efficient variant
+        of the replay buffer which reduces by almost a factor two the memory used,
+        at a cost of more complexity.
+        See https://github.com/DLR-RM/stable-baselines3/issues/37#issuecomment-637501195
+        and https://github.com/DLR-RM/stable-baselines3/pull/28#issuecomment-637559274
+    """
+
+    def __init__(
+        self,
+        buffer_size: int,
+        observation_space: spaces.Space,
+        action_space: spaces.Space,
+        history_size: int,
+        device: Union[th.device, str] = "cpu",
+        n_envs: int = 1
+    ):
+        super(HistoryBasedReplayBuffer, self).__init__(buffer_size, observation_space, action_space, device, n_envs=n_envs)
+        self.history_size = history_size
+        self.observations = np.zeros((self.buffer_size, self.n_envs* self.history_size) + (self.obs_shape[:-1] + (((self.obs_shape[-1])+self.action_dim),)), dtype=observation_space.dtype)
+        self.next_observations = np.zeros((self.buffer_size, self.n_envs* self.history_size) + (self.obs_shape[:-1] + (((self.obs_shape[-1])+self.action_dim),)), dtype=observation_space.dtype)
+
+    def _get_samples(self, batch_inds: np.ndarray) -> ReplayBufferSamples:
+        data = (
+            self.observations[batch_inds, :],
+            self.actions[batch_inds, 0, :],
+            self.next_observations[batch_inds, :],
+            self.dones[batch_inds],
+            self.rewards[batch_inds],
+        )
+        
+        return ReplayBufferSamples(*tuple(map(self.to_torch, data)))

@@ -1,10 +1,25 @@
 from collections import namedtuple, deque
 from itertools import islice
+import copy
 import numpy as np
 
 ExperienceFirstLast = namedtuple(
     'ExperienceFirstLast', ('state', 'action', 'reward', 'last_state'))
 Experience = namedtuple('Experience', ['state', 'action', 'reward', 'done'])
+
+
+def extract_np_array_from_queue(state_queue: deque, required_length):
+    missing_points = required_length - len(state_queue)
+    if(missing_points == 0):
+        return np.array(state_queue)
+    
+    first_state = state_queue[0]
+    result_queue = copy.copy(state_queue)
+
+    for _ in range(missing_points):
+        result_queue.appendleft(first_state)
+    
+    return np.array(result_queue)
 
 # based on coax and ptan
 class NStepTracer():

@@ -12,10 +12,10 @@ import torch.multiprocessing as mp
 import torch.nn.functional as F
 import torch.optim as optim
 
-import wandb
+# import wandb
 from agents.rdpg import (RDPGHP, RDPGActor, RDPGCritic, TargetActor,
                          TargetCritic, data_func)
-from agents.utils import ReplayBuffer, save_checkpoint, unpack_batch, ExperienceFirstLast
+from agents.utils import HistoryBasedReplayBuffer, save_checkpoint, unpack_batch, ExperienceFirstLast
 import pyvirtualdisplay
 
 if __name__ == "__main__":
@@ -58,13 +58,13 @@ if __name__ == "__main__":
         GIF_FREQUENCY=100000,
         TOTAL_GRAD_STEPS=2000000
     )
-    wandb.init(project='RoboCIn-RL', name=hp.EXP_NAME,  entity='robocin', config=hp.to_dict())
+    # wandb.init(project='RoboCIn-RL', name=hp.EXP_NAME,  entity='robocin', config=hp.to_dict())
     current_time = datetime.datetime.now().strftime('%b-%d_%H-%M-%S')
     tb_path = os.path.join('runs', current_time + '_'
                            + hp.ENV_NAME + '_' + hp.EXP_NAME)
 
-    pi = RDPGActor(hp.N_OBS, hp.N_ACTS).to(device)
-    Q = RDPGCritic(hp.N_OBS, hp.N_ACTS).to(device)
+    pi = RDPGActor(hp.N_OBS, hp.N_ACTS, (hp.N_OBS+hp.N_ACTS)*hp.HIDDEN_STATE_FACTOR).to(device)
+    Q = RDPGCritic(hp.N_OBS, hp.N_ACTS, (hp.N_OBS+hp.N_ACTS)*hp.HIDDEN_STATE_FACTOR).to(device)
 
     # Playing
     pi.share_memory()
@@ -94,10 +94,11 @@ if __name__ == "__main__":
     tgt_Q = TargetCritic(Q)
     pi_opt = optim.Adam(pi.parameters(), lr=hp.LEARNING_RATE)
     Q_opt = optim.Adam(Q.parameters(), lr=hp.LEARNING_RATE)
-    buffer = ReplayBuffer(buffer_size=hp.REPLAY_SIZE,
+    buffer = HistoryBasedReplayBuffer(buffer_size=hp.REPLAY_SIZE,
                           observation_space=hp.observation_space,
                           action_space=hp.action_space,
-                          device=hp.DEVICE
+                          history_size=hp.HISTORY_SIZE,
+                          device=hp.DEVICE,
                           )
     n_grads = 0
     n_samples = 0
@@ -191,7 +192,7 @@ if __name__ == "__main__":
                     metrics[key] = np.mean([info[key] for info in ep_infos])
 
             # Log metrics
-            wandb.log(metrics)
+            # wandb.log(metrics)
 
             if hp.NOISE_SIGMA_DECAY and sigma_m.value > hp.NOISE_SIGMA_MIN \
                 and n_grads % hp.NOISE_SIGMA_GRAD_STEPS == 0:

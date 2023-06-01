@@ -4,7 +4,7 @@ import time
 import gym
 import copy
 import numpy as np
-from agents.utils import NStepTracer, OrnsteinUhlenbeckNoise, generate_gif, HyperParameters, ExperienceFirstLast
+from agents.utils import NStepTracer, OrnsteinUhlenbeckNoise, generate_gif, HyperParameters, ExperienceFirstLast, extract_np_array_from_queue
 import os
 from dataclasses import dataclass
 
@@ -21,6 +21,8 @@ class RDPGHP(HyperParameters):
     NOISE_SIGMA_GRAD_STEPS: float = None  # Decay action noise every _ grad steps
 
 
+
+
 def data_func(
     pi,
     device,
@@ -28,7 +30,7 @@ def data_func(
     finish_event_m,
     sigma_m,
     gif_req_m,
-    hp
+    hp: RDPGHP
 ):
     env = gym.make(hp.ENV_NAME)
     if hp.MULTI_AGENT:
@@ -70,12 +72,21 @@ def data_func(
             else:
                 ep_rw = 0
             st_time = time.perf_counter()
+            history_queue = collections.deque(maxlen=hp.HISTORY_SIZE)
+            last_action = np.array([-1.0 for val in range(hp.N_ACTS)])
             for i in range(hp.MAX_EPISODE_STEPS):
                 # Step the environment
-                s_v = torch.Tensor(s).to(device)
+                history_queue.append(np.concatenate((last_action,s)))
+                s_v = torch.Tensor(
+                    np.expand_dims(
+                        extract_np_array_from_queue(history_queue, hp.HISTORY_SIZE),
+                        axis=0
+                    )
+                ).to(device)
                 a_v = pi(s_v)
-                a = a_v.cpu().numpy()
+                a = np.squeeze(a_v.cpu().numpy(), axis=0)
                 a = noise(a)
+                last_action = a
                 s_next, r, done, info = env.step(a)
                 ep_steps += 1
                 if hp.MULTI_AGENT:
@@ -97,7 +108,12 @@ def data_func(
                         exp.append(ExperienceFirstLast(**kwargs))
                     queue_m.put(exp)
                 else:
-                    tracer.add(s, a, r, done)
+                    tracer.add(
+                        extract_np_array_from_queue(history_queue, hp.HISTORY_SIZE),
+                        a,
+                        r,
+                        done
+                    )
                     while tracer:
                         queue_m.put(tracer.pop())
 
