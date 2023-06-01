@@ -39,7 +39,7 @@ if __name__ == "__main__":
         EXP_NAME=args.name,
         DEVICE=device,
         ENV_NAME=args.env,
-        N_ROLLOUT_PROCESSES=2,
+        N_ROLLOUT_PROCESSES=1,
         LEARNING_RATE=0.0001,
         EXP_GRAD_RATIO=10,
         BATCH_SIZE=256,
@@ -51,12 +51,12 @@ if __name__ == "__main__":
         NOISE_SIGMA_MIN=0.15,
         NOISE_SIGMA_GRAD_STEPS=3000,
         HISTORY_SIZE=10,
-        HIDDEN_STATE_FACTOR=5,
-        REPLAY_SIZE=5000000,
-        REPLAY_INITIAL=100000,
-        SAVE_FREQUENCY=100000,
-        GIF_FREQUENCY=100000,
-        TOTAL_GRAD_STEPS=2000000
+        HIDDEN_STATE_FACTOR=2,
+        REPLAY_SIZE=500,
+        REPLAY_INITIAL=100,
+        SAVE_FREQUENCY=100,
+        GIF_FREQUENCY=100,
+        TOTAL_GRAD_STEPS=2000
     )
     # wandb.init(project='RoboCIn-RL', name=hp.EXP_NAME,  entity='robocin', config=hp.to_dict())
     current_time = datetime.datetime.now().strftime('%b-%d_%H-%M-%S')
