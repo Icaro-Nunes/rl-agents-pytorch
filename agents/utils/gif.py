@@ -1,7 +1,9 @@
+from collections import deque
 import torch
 import numpy as np
 import PIL
 import os
+from agents.utils.experience import extract_np_array_from_queue
 
 def generate_gif(
     env, 
@@ -28,8 +30,22 @@ def generate_gif(
     # collect frames
     frames = []
     s = env.reset()
+    last_action = np.array([-1.0 for val in range(hp.N_ACTS)])
+    history_queue = deque(maxlen=hp.HISTORY_SIZE)
     for t in range(max_episode_steps):
-        if hp.AGENT != "maddpg_async":
+        if hp.AGENT == "rdpg_async":
+            history_queue.append(
+                np.concatenate((last_action,s))
+            )
+            s_v = torch.Tensor(
+                np.expand_dims(
+                    extract_np_array_from_queue(history_queue, hp.HISTORY_SIZE),
+                    axis=0
+                )
+            ).to(hp.DEVICE)
+            a = pi.get_action(s_v)
+            s_next, r, done, info = env.step(a)
+        elif hp.AGENT != "maddpg_async":
             s_v = torch.Tensor(s).to(hp.DEVICE)
             a = pi.get_action(s_v)
             s_next, r, done, info = env.step(a)
