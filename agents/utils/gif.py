@@ -68,6 +68,7 @@ def generate_gif(
             break
 
         s = s_next
+        last_action = a
 
     # store last frame
     frame = env.render(mode='rgb_array')
