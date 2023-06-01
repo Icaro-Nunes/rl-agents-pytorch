@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import copy
-
+import numpy as np
 
 class RDPGActor(nn.Module):
     def __init__(self, obs_size, act_size, hidden_size):
@@ -9,12 +9,14 @@ class RDPGActor(nn.Module):
 
         self.num_layers = 1
         self.hidden_size = hidden_size
+        self.input_size = act_size+obs_size
 
         self.lstm = nn.LSTM(
             input_size=act_size+obs_size,
             hidden_size=hidden_size,
             num_layers=1,
-            batch_first=True)
+            batch_first=True
+        )
 
         self.net = nn.Sequential(
             nn.Linear(hidden_size, 400),
@@ -35,7 +37,7 @@ class RDPGActor(nn.Module):
         return out
     
     def get_action(self, x):
-        return self.net(x).detach().cpu().numpy()
+        return np.squeeze(self.forward(x).detach().cpu().numpy(), axis=0)
 
 
 class RDPGCritic(nn.Module):
