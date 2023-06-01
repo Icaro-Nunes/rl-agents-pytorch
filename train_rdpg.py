@@ -12,7 +12,7 @@ import torch.multiprocessing as mp
 import torch.nn.functional as F
 import torch.optim as optim
 
-# import wandb
+import wandb
 from agents.rdpg import (RDPGHP, RDPGActor, RDPGCritic, TargetActor,
                          TargetCritic, data_func)
 from agents.utils import HistoryBasedReplayBuffer, save_checkpoint, unpack_batch, ExperienceFirstLast
@@ -58,7 +58,7 @@ if __name__ == "__main__":
         GIF_FREQUENCY=100000,
         TOTAL_GRAD_STEPS=2000000
     )
-    # wandb.init(project='RoboCIn-RL', name=hp.EXP_NAME,  entity='robocin', config=hp.to_dict())
+    wandb.init(project='RoboCIn-RL', name=hp.EXP_NAME,  entity='robocin', config=hp.to_dict())
     current_time = datetime.datetime.now().strftime('%b-%d_%H-%M-%S')
     tb_path = os.path.join('runs', current_time + '_'
                            + hp.ENV_NAME + '_' + hp.EXP_NAME)
@@ -192,7 +192,7 @@ if __name__ == "__main__":
                     metrics[key] = np.mean([info[key] for info in ep_infos])
 
             # Log metrics
-            # wandb.log(metrics)
+            wandb.log(metrics)
 
             if hp.NOISE_SIGMA_DECAY and sigma_m.value > hp.NOISE_SIGMA_MIN \
                 and n_grads % hp.NOISE_SIGMA_GRAD_STEPS == 0:
