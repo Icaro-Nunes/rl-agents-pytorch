@@ -63,8 +63,8 @@ if __name__ == "__main__":
     tb_path = os.path.join('runs', current_time + '_'
                            + hp.ENV_NAME + '_' + hp.EXP_NAME)
 
-    pi = RDPGActor(hp.N_OBS, hp.N_ACTS, (hp.N_OBS+hp.N_ACTS)*hp.HIDDEN_STATE_FACTOR).to(device)
-    Q = RDPGCritic(hp.N_OBS, hp.N_ACTS, (hp.N_OBS+hp.N_ACTS)*hp.HIDDEN_STATE_FACTOR).to(device)
+    pi = RDPGActor(hp.N_OBS, hp.N_ACTS, (hp.N_OBS+hp.N_ACTS)*hp.HIDDEN_STATE_FACTOR, device).to(device)
+    Q = RDPGCritic(hp.N_OBS, hp.N_ACTS, (hp.N_OBS+hp.N_ACTS)*hp.HIDDEN_STATE_FACTOR, device).to(device)
 
     # Playing
     pi.share_memory()

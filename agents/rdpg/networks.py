@@ -4,9 +4,10 @@ import copy
 import numpy as np
 
 class RDPGActor(nn.Module):
-    def __init__(self, obs_size, act_size, hidden_size):
+    def __init__(self, obs_size, act_size, hidden_size, device):
         super(RDPGActor, self).__init__()
 
+        self.device = device
         self.num_layers = 1
         self.hidden_size = hidden_size
         self.input_size = act_size+obs_size
@@ -28,8 +29,8 @@ class RDPGActor(nn.Module):
         )
 
     def forward(self, x):
-        h_0 = torch.autograd.Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)) #hidden state
-        c_0 = torch.autograd.Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)) #internal state
+        h_0 = torch.autograd.Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(self.device) #hidden state
+        c_0 = torch.autograd.Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(self.device) #internal state
 
         output, (hn, cn) = self.lstm(x, (h_0, c_0)) #lstm with input, hidden, and internal state
         hn = hn.view(-1, self.hidden_size) #reshaping the data for Dense layer next
@@ -41,9 +42,10 @@ class RDPGActor(nn.Module):
 
 
 class RDPGCritic(nn.Module):
-    def __init__(self, obs_size, act_size, hidden_size):
+    def __init__(self, obs_size, act_size, hidden_size, device):
         super(RDPGCritic, self).__init__()
 
+        self.device = device
         self.num_layers = 1
         self.hidden_size = hidden_size
 
@@ -66,8 +68,8 @@ class RDPGCritic(nn.Module):
         )
 
     def forward(self, x, a):
-        h_0 = torch.autograd.Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)) #hidden state
-        c_0 = torch.autograd.Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)) #internal state
+        h_0 = torch.autograd.Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(self.device) #hidden state
+        c_0 = torch.autograd.Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(self.device) #internal state
 
         output, (hn, cn) = self.lstm(x, (h_0, c_0)) #lstm with input, hidden, and internal state
         hn = hn.view(-1, self.hidden_size) #reshaping the data for Dense layer next
