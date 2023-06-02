@@ -29,8 +29,8 @@ class RDPGActor(nn.Module):
         )
 
     def forward(self, x):
-        h_0 = torch.autograd.Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(self.device) #hidden state
-        c_0 = torch.autograd.Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(self.device) #internal state
+        h_0 = torch.autograd.Variable(torch.zeros(self.num_layers_lstm, x.size(0), self.hidden_size)).to(self.device) #hidden state
+        c_0 = torch.autograd.Variable(torch.zeros(self.num_layers_lstm, x.size(0), self.hidden_size)).to(self.device) #internal state
 
         output, (hn, cn) = self.lstm(x, (h_0, c_0)) #lstm with input, hidden, and internal state
         hn = hn.view(-1, self.hidden_size) #reshaping the data for Dense layer next
@@ -68,8 +68,8 @@ class RDPGCritic(nn.Module):
         )
 
     def forward(self, x, a):
-        h_0 = torch.autograd.Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(self.device) #hidden state
-        c_0 = torch.autograd.Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(self.device) #internal state
+        h_0 = torch.autograd.Variable(torch.zeros(self.num_layers_lstm, x.size(0), self.hidden_size)).to(self.device) #hidden state
+        c_0 = torch.autograd.Variable(torch.zeros(self.num_layers_lstm, x.size(0), self.hidden_size)).to(self.device) #internal state
 
         output, (hn, cn) = self.lstm(x, (h_0, c_0)) #lstm with input, hidden, and internal state
         hn = hn.view(-1, self.hidden_size) #reshaping the data for Dense layer next
