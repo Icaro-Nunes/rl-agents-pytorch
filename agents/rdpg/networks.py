@@ -8,7 +8,7 @@ class RDPGActor(nn.Module):
         super(RDPGActor, self).__init__()
 
         self.device = device
-        self.num_layers_lstm = 2
+        self.num_layers_lstm = 1
         self.hidden_size = hidden_size
         self.input_size = act_size+obs_size
 
@@ -46,7 +46,7 @@ class RDPGCritic(nn.Module):
         super(RDPGCritic, self).__init__()
 
         self.device = device
-        self.num_layers_lstm = 2
+        self.num_layers_lstm = 1
         self.hidden_size = hidden_size
 
         self.lstm = nn.LSTM(
