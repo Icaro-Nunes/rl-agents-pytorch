@@ -6,22 +6,24 @@ import torch
 from collections import deque
 import numpy as np
 
-env = gym.make('VSS-dynrand-v0')
+WIN_SIZE = 1
+
+env = gym.make('VSS-v0')
 
 obs = env.reset()
 
 # print(env.action_space.shape)
 model = RDPGActor(obs.shape[0], env.action_space.shape[0], 42*5, torch.device("cpu"))
-model.load_state_dict(torch.load('checkpoint_005000000.pth')['pi_state_dict'])
+model.load_state_dict(torch.load('checkpoint.pth', map_location=torch.device('cpu'))['pi_state_dict'])
 
-queue = deque(maxlen=10)
+queue = deque(maxlen=WIN_SIZE)
 
 queue.append(
     np.concatenate((np.array([-1.0, -1.0]), obs))
 )
 
 inp = np.expand_dims(
-    extract_np_array_from_queue(queue, 10),
+    extract_np_array_from_queue(queue, WIN_SIZE),
     axis=0
 )
 
