@@ -31,7 +31,9 @@ def generate_gif(
     frames = []
     s = env.reset()
     last_action = np.array([-1.0 for val in range(hp.N_ACTS)])
-    history_queue = deque(maxlen=hp.HISTORY_SIZE)
+    history_queue = None
+    if hp.AGENT == "rdpg_async":
+        history_queue = deque(maxlen=hp.HISTORY_SIZE)
     for t in range(max_episode_steps):
         if hp.AGENT == "rdpg_async":
             history_queue.append(
