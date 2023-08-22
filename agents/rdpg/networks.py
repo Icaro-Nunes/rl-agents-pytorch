@@ -4,23 +4,16 @@ import copy
 import numpy as np
 
 class RDPGActor(nn.Module):
-    def __init__(self, obs_size, act_size, hidden_size, device):
+    def __init__(self, obs_size, act_size, window_size, device):
         super(RDPGActor, self).__init__()
 
         self.device = device
-        self.num_layers_lstm = 1
-        self.hidden_size = hidden_size
-        self.input_size = act_size+obs_size
-
-        self.lstm = nn.LSTM(
-            input_size=act_size+obs_size,
-            hidden_size=hidden_size,
-            num_layers=self.num_layers_lstm,
-            batch_first=True
-        )
+        self.input_size = (act_size+obs_size)*window_size
 
         self.net = nn.Sequential(
-            nn.Linear(hidden_size, 400),
+            nn.Linear(self.input_size, 600),
+            nn.ReLU(),
+            nn.Linear(600, 400),
             nn.ReLU(),
             nn.Linear(400, 300),
             nn.ReLU(),
@@ -29,12 +22,7 @@ class RDPGActor(nn.Module):
         )
 
     def forward(self, x):
-        h_0 = torch.autograd.Variable(torch.zeros(self.num_layers_lstm, x.size(0), self.hidden_size)).to(self.device) #hidden state
-        c_0 = torch.autograd.Variable(torch.zeros(self.num_layers_lstm, x.size(0), self.hidden_size)).to(self.device) #internal state
-
-        output, (hn, cn) = self.lstm(x, (h_0, c_0)) #lstm with input, hidden, and internal state
-        hn = hn.view(-1, self.hidden_size) #reshaping the data for Dense layer next
-        out = self.net(hn)
+        out = self.net(x)
         return out
     
     def get_action(self, x):
@@ -42,22 +30,16 @@ class RDPGActor(nn.Module):
 
 
 class RDPGCritic(nn.Module):
-    def __init__(self, obs_size, act_size, hidden_size, device):
+    def __init__(self, obs_size, act_size, window_size, device):
         super(RDPGCritic, self).__init__()
 
         self.device = device
-        self.num_layers_lstm = 1
-        self.hidden_size = hidden_size
-
-        self.lstm = nn.LSTM(
-            input_size=act_size+obs_size,
-            hidden_size=hidden_size,
-            num_layers=self.num_layers_lstm,
-            batch_first=True
-        )
+        self.input_size = (act_size+obs_size)*window_size
 
         self.obs_net = nn.Sequential(
-            nn.Linear(hidden_size, 400),
+            nn.Linear(self.input_size, 600),
+            nn.ReLU(),
+            nn.Linear(600, 400),
             nn.ReLU(),
         )
 
@@ -68,13 +50,7 @@ class RDPGCritic(nn.Module):
         )
 
     def forward(self, x, a):
-        h_0 = torch.autograd.Variable(torch.zeros(self.num_layers_lstm, x.size(0), self.hidden_size)).to(self.device) #hidden state
-        c_0 = torch.autograd.Variable(torch.zeros(self.num_layers_lstm, x.size(0), self.hidden_size)).to(self.device) #internal state
-
-        output, (hn, cn) = self.lstm(x, (h_0, c_0)) #lstm with input, hidden, and internal state
-        hn = hn.view(-1, self.hidden_size) #reshaping the data for Dense layer next
-
-        obs = self.obs_net(hn)
+        obs = self.obs_net(x)
         return self.out_net(torch.cat([obs, a], dim=1))
 
 

@@ -50,8 +50,7 @@ if __name__ == "__main__":
         NOISE_SIGMA_DECAY=0.99,
         NOISE_SIGMA_MIN=0.15,
         NOISE_SIGMA_GRAD_STEPS=3000,
-        HISTORY_SIZE=10,
-        HIDDEN_STATE_FACTOR=5,
+        WINDOW_SIZE=10,
         REPLAY_SIZE=5000000,
         REPLAY_INITIAL=100000,
         SAVE_FREQUENCY=100000,
@@ -63,8 +62,8 @@ if __name__ == "__main__":
     tb_path = os.path.join('runs', current_time + '_'
                            + hp.ENV_NAME + '_' + hp.EXP_NAME)
 
-    pi = RDPGActor(hp.N_OBS, hp.N_ACTS, (hp.N_OBS+hp.N_ACTS)*hp.HIDDEN_STATE_FACTOR, device).to(device)
-    Q = RDPGCritic(hp.N_OBS, hp.N_ACTS, (hp.N_OBS+hp.N_ACTS)*hp.HIDDEN_STATE_FACTOR, device).to(device)
+    pi = RDPGActor(hp.N_OBS, hp.N_ACTS, hp.WINDOW_SIZE, device).to(device)
+    Q = RDPGCritic(hp.N_OBS, hp.N_ACTS, hp.WINDOW_SIZE, device).to(device)
 
     # Playing
     pi.share_memory()
@@ -97,7 +96,7 @@ if __name__ == "__main__":
     buffer = HistoryBasedReplayBuffer(buffer_size=hp.REPLAY_SIZE,
                           observation_space=hp.observation_space,
                           action_space=hp.action_space,
-                          history_size=hp.HISTORY_SIZE,
+                          history_size=hp.WINDOW_SIZE,
                           device=hp.DEVICE,
                           )
     n_grads = 0

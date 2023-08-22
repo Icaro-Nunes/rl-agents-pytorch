@@ -225,8 +225,8 @@ class HistoryBasedReplayBuffer(ReplayBuffer):
     ):
         super(HistoryBasedReplayBuffer, self).__init__(buffer_size, observation_space, action_space, device, n_envs=n_envs)
         self.history_size = history_size
-        self.observations = np.zeros((self.buffer_size, self.n_envs* self.history_size) + (self.obs_shape[:-1] + (((self.obs_shape[-1])+self.action_dim),)), dtype=observation_space.dtype)
-        self.next_observations = np.zeros((self.buffer_size, self.n_envs* self.history_size) + (self.obs_shape[:-1] + (((self.obs_shape[-1])+self.action_dim),)), dtype=observation_space.dtype)
+        self.observations = np.zeros((self.buffer_size, self.n_envs) + (self.obs_shape[:-1] + (self.history_size* ((self.obs_shape[-1])+self.action_dim),)), dtype=observation_space.dtype)
+        self.next_observations = np.zeros((self.buffer_size, self.n_envs) + (self.obs_shape[:-1] + (self.history_size* ((self.obs_shape[-1])+self.action_dim),)), dtype=observation_space.dtype)
 
     def _get_samples(self, batch_inds: np.ndarray) -> ReplayBufferSamples:
         data = (

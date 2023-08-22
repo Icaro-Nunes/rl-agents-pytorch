@@ -12,13 +12,12 @@ from dataclasses import dataclass
 @dataclass
 class RDPGHP(HyperParameters):
     AGENT: str = "rdpg_async"
-    HISTORY_SIZE: int = 10
-    HIDDEN_STATE_FACTOR: int = 5
+    WINDOW_SIZE: int = 10
     NOISE_SIGMA_INITIAL: float = None  # Initial action noise sigma
     NOISE_THETA: float = None
     NOISE_SIGMA_DECAY: float = None  # Action noise sigma decay
     NOISE_SIGMA_MIN: float = None
-    NOISE_SIGMA_GRAD_STEPS: float = None  # Decay action noise every _ grad steps
+    NOISE_SIGMA_GRAD_STEPS: float = None  # Decay action noise every _ grad steps 
 
 
 
@@ -72,14 +71,14 @@ def data_func(
             else:
                 ep_rw = 0
             st_time = time.perf_counter()
-            history_queue = collections.deque(maxlen=hp.HISTORY_SIZE)
+            history_queue = collections.deque(maxlen=hp.WINDOW_SIZE)
             last_action = np.array([-1.0 for val in range(hp.N_ACTS)])
             for i in range(hp.MAX_EPISODE_STEPS):
                 # Step the environment
                 history_queue.append(np.concatenate((last_action,s)))
                 s_v = torch.Tensor(
                     np.expand_dims(
-                        extract_np_array_from_queue(history_queue, hp.HISTORY_SIZE),
+                        extract_np_array_from_queue(history_queue, hp.WINDOW_SIZE),
                         axis=0
                     )
                 ).to(device)
@@ -109,7 +108,7 @@ def data_func(
                     queue_m.put(exp)
                 else:
                     tracer.add(
-                        extract_np_array_from_queue(history_queue, hp.HISTORY_SIZE),
+                        extract_np_array_from_queue(history_queue, hp.WINDOW_SIZE),
                         a,
                         r,
                         done
