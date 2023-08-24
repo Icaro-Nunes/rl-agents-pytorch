@@ -33,7 +33,7 @@ def generate_gif(
     last_action = np.array([-1.0 for val in range(hp.N_ACTS)])
     history_queue = None
     if hp.AGENT == "rdpg_async":
-        history_queue = deque(maxlen=hp.HISTORY_SIZE)
+        history_queue = deque(maxlen=hp.WINDOW_SIZE)
     for t in range(max_episode_steps):
         if hp.AGENT == "rdpg_async":
             history_queue.append(
@@ -41,7 +41,7 @@ def generate_gif(
             )
             s_v = torch.Tensor(
                 np.expand_dims(
-                    extract_np_array_from_queue(history_queue, hp.HISTORY_SIZE),
+                    extract_np_array_from_queue(history_queue, hp.WINDOW_SIZE),
                     axis=0
                 )
             ).to(hp.DEVICE)
